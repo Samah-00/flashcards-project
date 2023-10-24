@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <div>
+            <h1>Welcome to Your Dashboard, {{ current_user.username }}!</h1>
+            <a href="/logout">Logout</a>
+        </div>
+
+        <!-- Display flashed messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert alert-{{ messages[0][0] }}">
+                    {{ messages[0][1] }}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <!-- First Column -->
+            <div class="col-md-4">
+                <div class="bg-light p-2">
+                    <p><strong>Create a Folder</strong></p>
+                    <form method="POST" action="/create_folder">
+                        <label for="name">Folder Name:</label>
+                        <input type="text" name="name" required><br><br>
+
+                        <label for="color">Folder Color:</label>
+                        <select name="color">
+                            <option value="red">Red</option>
+                            <option value="blue">Blue</option>
+                            <option value="green">Green</option>
+                            <option value="yellow">Yellow</option>
+                            <option value="orange">Orange</option>
+                        </select><br><br>
+
+                        <input type="submit" value="Create Folder">
+                    </form>
+                </div>
+                <div class="bg-light p-2 m-2">
+                    <p><strong>Create a Flashcard</strong></p>
+                    <form method="POST" action="/create_flashcard">
+                        <label for="folder_id">Select a Folder:</label>
+                        <select name="folder_id" required>
+                            {% for folder in folders %}
+                                <option value="{{ folder.id }}">{{ folder.name }}</option>
+                            {% endfor %}
+                        </select><br><br>
+
+                        <label for="question">Question:</label>
+                        <textarea name="question" rows="1" required></textarea><br><br>
+
+                        <label for="answer">Answer:</label>
+                        <textarea name="answer" rows="1" required></textarea><br><br>
+
+                        <input type="submit" value="Create Flashcard">
+                    </form>
+                </div>
+                <div class="bg-light p-2 m-2">
+                    <p><strong>Generate Flashcards</strong></p>
+                    <form method="POST" action="/generate_flashcards">
+                        <label for="folder_name">Folder Name:</label>
+                        <input type="text" name="folder_name" required><br><br>
+
+                        <label for="folder_color">Folder Color:</label>
+                        <select name="folder_color">
+                            <option value="red">Red</option>
+                            <option value="blue">Blue</option>
+                            <option value="green">Green</option>
+                            <option value="yellow">Yellow</option>
+                            <option value="orange">Orange</option>
+                        </select><br><br>
+
+                        <label for="text">Text:</label>
+                        <textarea name="text" rows="3" required></textarea><br><br>
+
+                        <input type="submit" value="Create Folder & Flashcards">
+                    </form>
+                </div>
+                <div class="bg-light p-2 m-2">
+                    <p><strong>Calculate Exam Date</strong></p>
+                    <form method="POST" action="/calculate_exam_date">
+                        <label for="exam_date">Exam Date:</label>
+                        <input type="date" name="exam_date" required><br><br>
+
+                        <input type="submit" value="Calculate Days Left">
+                        <div id="days_left_result"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Second Column -->
+            <div class="col-md-8 bg-secondary">
+                <span>
+                    <h2>Your Folders</h2>
+                    <table>
+                        <tbody>
+                            {% for folder in folders %}
+                            <tr>
+                                <td>
+                                    <!-- Folder Name -->
+                                    <a href="{{ url_for('view_folder', folder_id=folder.id) }}">
+                                        <button class="md-5" style="background-color: {{ folder.color }}">{{ folder.name }}</button>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </span>
+            </div>
+
+        </div>
+    </div>
+    <script>
+        document.querySelector('form[action="/calculate_exam_date"]').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const examDate = document.querySelector('input[name="exam_date"]').value;
+            fetch('/calculate_exam_date', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `exam_date=${examDate}`,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        // Handle invalid date format
+                        document.getElementById('days_left_result').textContent = data.error;
+                    } else {
+                        // Display the number of days left
+                        document.getElementById('days_left_result').textContent = `Days Left: ${data.days_left}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <h1>Quiz Flashcards</h1>
+
+    <div id="flashcard-container">
+        <div class="flashcard">
+            <div class="question">{{ flashcards_data[0].question }}</div>
+            <div class="answer" style="display: none;">{{ flashcards_data[0].answer }}</div>
+            <div class="buttons">
+                <button class="reveal-button" onclick="revealAnswer()">Reveal Answer</button>
+                <button class="correct-button" onclick="markCorrect()">✅ Correct</button>
+                <button class="incorrect-button" onclick="markIncorrect()">❌ Incorrect</button>
+            </div>
+            <div class="attempts">attempts record for this flashcard:
+                {{ flashcards_data[0].attempts }}
+            </div>
+        </div>
+        </div>
+    </div>
+    <a href="{{ url_for('view_folder', folder_id=folder) }}" class="btn btn-link">Back to Folder</a>
+
+    <script>
+        // JavaScript functions to handle flashcard interactions
+        let currentFlashcardIndex = 0;
+        const flashcardsData = {{ flashcards_data|tojson }};
+        const revise_this_folder_id  = {{ revise_this_folder }};
+        const folder_id = {{ folder }};
+        let correctAnswers = 0; // Counter for correct answers
+
+        function revealAnswer() {
+            document.querySelector('.answer').style.display = 'block';
+        }
+
+        function markCorrect() {
+            currentFlashcardIndex++;
+            correctAnswers++;
+            if (currentFlashcardIndex < flashcardsData.length) {
+                updateFlashcardAttempts();
+                updateFlashcard();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function markIncorrect() {
+            // Make an AJAX request to add the incorrect flashcard to the 'Revise This' folder
+            const currentFlashcard = flashcardsData[currentFlashcardIndex];
+            const folderId = revise_this_folder_id;
+            addFlashcardToFolder(folderId, currentFlashcard.question, currentFlashcard.answer);
+
+            currentFlashcardIndex++;
+            if (currentFlashcardIndex < flashcardsData.length) {
+                updateFlashcardAttempts();
+                // Update the current flashcard
+                updateFlashcard();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function addFlashcardToFolder(folderId, question, answer) {
+            // Make an AJAX POST request to the '/add_flashcard_to_folder' route
+            fetch('/add_flashcard_to_folder', {
+                method: 'POST',
+                body: new URLSearchParams({
+                    folder_id: folderId,
+                    question: question,
+                    answer: answer
+                }),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            })
+            .then(response => {
+                if (response.status === 200) {
+                    console.log('Flashcard added to folder successfully.');
+                } else {
+                    console.error('Error adding flashcard to folder:', response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error('Error adding flashcard to folder:', error);
+            });
+        }
+
+        function sendQuizResults(grade) {
+            // Make an AJAX POST request to send the exam results to the server
+            fetch('/submit_exam_results', {
+                method: 'POST',
+                body: new URLSearchParams({
+                    grade: grade,
+                    folder_id: folder_id,
+                }),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            })
+                .then(response => {
+                    if (response.status === 200) {
+                        console.log('Exam results submitted successfully.');
+                    } else {
+                        console.error('Error submitting exam results:', response.statusText);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error submitting exam results:', error);
+                });
+        }
+
+        function updateFlashcardAttempts() {
+            // Increment the attempts attribute
+            const currentFlashcard = flashcardsData[currentFlashcardIndex-1];
+            const flashcardId = currentFlashcard.id;
+            const attempts = currentFlashcard.attempts + 1;
+
+            // Make an AJAX POST request to update the attempts for the flashcard
+            fetch('/update_flashcard_attempts', {
+                method: 'POST',
+                body: new URLSearchParams({
+                    flashcard_id: flashcardId,
+                    attempts: attempts
+                }),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            })
+                .then(response => {
+                    if (response.status === 200) {
+                        console.log('Flashcard attempts updated successfully.');
+                    } else {
+                        console.error('Error updating flashcard attempts:', response.statusText);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating flashcard attempts:', error);
+                });
+        }
+
+        function finishQuiz() {
+            // Calculate the grade based on the number of correct and incorrect answers
+            const totalQuestions = flashcardsData.length;
+            const grade = (correctAnswers / totalQuestions) * 100;
+
+            // Make an AJAX request to send the results to the server
+            sendQuizResults(grade);
+            alert('You have studied all flashcards in this folder.');
+        }
+
+        function updateFlashcard() {
+            const currentFlashcard = flashcardsData[currentFlashcardIndex];
+            document.querySelector('.question').textContent = currentFlashcard.question;
+            document.querySelector('.answer').textContent = currentFlashcard.answer;
+            document.querySelector('.answer').style.display = 'none';
+        }
+    </script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

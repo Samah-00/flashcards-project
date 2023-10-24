@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <h1>Study Flashcards</h1>
+
+    <!-- Display flashed messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert alert-{{ messages[0][0] }}">
+                    {{ messages[0][1] }}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+    <div id="flashcard-container">
+        <div class="flashcard">
+            <div class="question">{{ flashcards_data[0].question }}</div>
+            <div class="answer" style="display: none;">{{ flashcards_data[0].answer }}</div>
+            <div class="buttons">
+                <button class="reveal-button" onclick="revealAnswer()">Reveal Answer</button>
+                <button class="next-button" onclick="showNextFlashcard()">Next</button>
+            </div>
+            <div class="attempts">attempts record for this flashcard:
+                {{ flashcards_data[0].attempts }}</div>
+        </div>
+    </div>
+    <a href="{{ url_for('view_folder', folder_id=folder.id) }}" class="btn btn-link">Back to Folder</a>
+
+    <script>
+        // JavaScript functions to handle flashcard interactions
+        let currentFlashcardIndex = 0;
+        const flashcardsData = {{ flashcards_data|tojson }};
+
+        function revealAnswer() {
+            document.querySelector('.answer').style.display = 'block';
+        }
+
+        function showNextFlashcard() {
+            currentFlashcardIndex++;
+            if (currentFlashcardIndex < flashcardsData.length) {
+                updateFlashcard();
+            } else {
+                alert('You have studied all flashcards in this folder.');
+            }
+        }
+
+        function updateFlashcard() {
+            const currentFlashcard = flashcardsData[currentFlashcardIndex];
+            document.querySelector('.question').textContent = currentFlashcard.question;
+            document.querySelector('.answer').textContent = currentFlashcard.answer;
+            document.querySelector('.answer').style.display = 'none';
+        }
+    </script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

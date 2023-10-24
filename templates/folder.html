@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Folder</title>
+        <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+
+    <h1>Folder: {{ folder.name }}</h1>
+
+    <!-- Display flashed messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alert alert-{{ messages[0][0] }}">
+                {{ messages[0][1] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <p>Number of Flashcards: {{ flashcards|length }}</p>
+
+    <!-- A button to study the flashcards -->
+    <form method="GET" action="{{ url_for('study_flashcards', folder_id=folder.id) }}">
+        <button type="submit" class="btn btn-link">Study Flashcards</button>
+    </form>
+
+    <!-- A button to quiz the flashcards -->
+    <form method="GET" action="{{ url_for('quiz_flashcards', folder_id=folder.id) }}">
+        <button type="submit" class="btn btn-link">Start Quiz</button>
+    </form>
+
+    <h2>Flashcards in This Folder</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Question</th>
+                <th>Answer</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for flashcard in flashcards %}
+            <tr>
+                <td>{{ flashcard.question }}</td>
+                <td>{{ flashcard.answer }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+        <!-- Change Color Dropdown -->
+    <form method="POST" action="/change_folder_color/{{ folder.id }}">
+        <label for="new_color">Change Color:</label>
+        <select name="new_color">
+            <option value="red">Red</option>
+            <option value="blue">Blue</option>
+            <option value="green">Green</option>
+            <option value="yellow">Yellow</option>
+            <option value="orange">Orange</option>
+        </select>
+        <input type="submit" value="Change Color">
+    </form>
+
+    <!-- Change Name Form -->
+    <form method="POST" action="/change_folder_name/{{ folder.id }}">
+        <label for="new_name">Change Name:</label>
+        <input type="text" name="new_name" required>
+        <input type="submit" value="Change Name">
+    </form>
+
+    <!-- Delete Folder Button -->
+    <form method="POST" action="/delete_folder/{{ folder.id }}">
+        <input type="submit" value="Delete Folder">
+    </form>
+
+    <a href="/dashboard">Back to Dashboard</a>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
