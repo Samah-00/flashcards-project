@@ -5,99 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Folder</title>
         <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css"
+          rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We"
+          crossorigin="anonymous">
     <!-- Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-title@1.2.1"></script>
 </head>
 <style>
     .grade-chart {
-        width: 200px;
-        height: 200px;
+        width: 300px;
+        height: 300px;
     }
 </style>
 <body>
+    <div class="container mt-3">
+        <h1 style="font-weight: bold;">Folder: {{ folder.name }}</h1>
 
-    <h1>Folder: {{ folder.name }}</h1>
+        <hr>
 
-    <!-- Display flashed messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="alert alert-{{ messages[0][0] }}">
-                {{ messages[0][1] }}
+        <div class="container mt-5">
+            <!-- Display flashed messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="alert alert-{{ messages[0][0] }}">
+                        {{ messages[0][1] }}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="row">
+                <!-- First Column -->
+                <div class="col-md-6">
+                    <!-- A button to study the flashcards -->
+                    <form method="GET" action="{{ url_for('study_flashcards', folder_id=folder.id) }}">
+                        <button type="submit" class="btn btn-link">Study Flashcards</button>
+                    </form>
+
+                    <!-- A button to quiz the flashcards -->
+                    <form method="GET" action="{{ url_for('quiz_flashcards', folder_id=folder.id) }}">
+                        <button type="submit" class="btn btn-link">Start Quiz</button>
+                    </form>
+
+                    <button type="button" class="btn btn-link"><a href="/dashboard">Back to Dashboard</a></button>
+
+                    <hr>
+
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <!-- Change Color Dropdown -->
+                                    <form method="POST" action="/change_folder_color/{{ folder.id }}">
+                                        <select class="form-select" name="new_color">
+                                            <option selected>Choose new color</option>
+                                            <option value="red">Red</option>
+                                            <option value="blue">Blue</option>
+                                            <option value="green">Green</option>
+                                            <option value="yellow">Yellow</option>
+                                            <option value="orange">Orange</option>
+                                        </select>
+                                        <input type="submit" class="btn btn-light mt-1" value="Change Color">
+                                    </form>
+                                </td>
+                                <td>
+                                    <!-- Change Name Form -->
+                                    <form method="POST" action="/change_folder_name/{{ folder.id }}">
+                                        <input type="text" class="form-control" placeholder="Type new name" name="new_name" required>
+                                        <input type="submit" class="btn btn-light mt-1" value="Change Name">
+                                    </form>
+                                </td>
+                                <td>
+                                    <!-- Delete Folder Button -->
+                                    <form method="POST" action="/delete_folder/{{ folder.id }}">
+                                        <input class="md-5 btn {% if folder.color == 'green' %}bg-success{% elif folder.color == 'blue' %}bg-primary{% elif folder.color == 'yellow' %}bg-warning{% elif folder.color == 'red' %}bg-danger{% elif folder.color == 'orange' %}btn-warning{% endif %}"
+                                               type="submit" value="Delete Folder">
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                 <!-- Second Column -->
+                <div class="col-md-6 d-flex justify-content-center">
+                    <div class="grade-chart" id="gradeChart-container">
+                        <canvas id="gradeChart" class="grade-chart"></canvas>
+                        <div class="text-center">
+                            <p>Number of Flashcards: {{ flashcards|length }}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        {% endif %}
-    {% endwith %}
-
-    <div class="grade-chart" id="gradeChart-container">
-        <canvas id="gradeChart" class="grade-chart"></canvas>
-        <p>Number of Flashcards: {{ flashcards|length }}</p>
-        <button class="download-button" onclick="downloadGradeChart()">Download Grade Chart</button>
+        </div>
     </div>
-
-    <!-- A button to study the flashcards -->
-    <form method="GET" action="{{ url_for('study_flashcards', folder_id=folder.id) }}">
-        <button type="submit" class="btn btn-link">Study Flashcards</button>
-    </form>
-
-    <!-- A button to quiz the flashcards -->
-    <form method="GET" action="{{ url_for('quiz_flashcards', folder_id=folder.id) }}">
-        <button type="submit" class="btn btn-link">Start Quiz</button>
-    </form>
-
-    <h2>Flashcards in This Folder</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Question</th>
-                <th>Answer</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for flashcard in flashcards %}
-            <tr>
-                <td>{{ flashcard.question }}</td>
-                <td>{{ flashcard.answer }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-        <!-- Change Color Dropdown -->
-    <form method="POST" action="/change_folder_color/{{ folder.id }}">
-        <label for="new_color">Change Color:</label>
-        <select name="new_color">
-            <option value="red">Red</option>
-            <option value="blue">Blue</option>
-            <option value="green">Green</option>
-            <option value="yellow">Yellow</option>
-            <option value="orange">Orange</option>
-        </select>
-        <input type="submit" value="Change Color">
-    </form>
-
-    <!-- Change Name Form -->
-    <form method="POST" action="/change_folder_name/{{ folder.id }}">
-        <label for="new_name">Change Name:</label>
-        <input type="text" name="new_name" required>
-        <input type="submit" value="Change Name">
-    </form>
-
-    <!-- Delete Folder Button -->
-    <form method="POST" action="/delete_folder/{{ folder.id }}">
-        <input type="submit" value="Delete Folder">
-    </form>
-
-    <a href="/dashboard">Back to Dashboard</a>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             // Retrieve the grade (latest_score) from your template
             const grade = {{ folder.latest_score }};
+            const folderName = "{{ folder.name }}"; // Access the folder name
+            const folderColor = "{{ folder.color }}"; // Access the folder color
 
             // Check if grade has a value before displaying the chart
             if (grade !== -1 && grade !== undefined) {
                 // Run the function to display the grade as a pie chart
-                displayGradeChart(grade);
+                displayGradeChart(grade, folderName, folderColor);
             }
             else {
                 const gradeContainer = document.getElementById('gradeChart-container');
@@ -108,7 +121,7 @@
             }
         });
 
-        function displayGradeChart(grade) {
+        function displayGradeChart(grade, folderName, folderColor) {
             const gradeContainer = document.getElementById('gradeChart-container');
             const gradeCanvas = document.getElementById('gradeChart');
 
@@ -118,15 +131,17 @@
                     labels: ['Grade', 'Remaining'],
                     datasets: [{
                         data: [grade, 100 - grade],
-                        backgroundColor: ['green', 'gray'],
+                        backgroundColor: [folderColor, 'gray'],
                     }]
                 },
                 options: {
-                    title: {
-                        display: true,
-                        text: `Exam Grade: ${grade.toFixed(2)}%`
-                    }
-                }
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Exam Grade for ${folderName}: ${grade.toFixed(2)}%`,
+                        },
+                    },
+                },
             });
         }
 

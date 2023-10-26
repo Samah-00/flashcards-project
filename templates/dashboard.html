@@ -10,6 +10,7 @@
           crossorigin="anonymous">
     <!-- canvas.js for the pie chart -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-title@1.2.1"></script>
 </head>
 <style>
     .grade-chart {
@@ -22,15 +23,17 @@
     <div id="Header" class="container-fluid bg-dark">
         <div class="row">
             <!-- Logo -->
-            <div id="Header-Logo" class="col-4">
+            <div class="col-3 d-flex justify-content-center">
                 <img class="img-fluid" src="/static/book-icon-colors.jpg" alt="Logo" width="100" height="100">
             </div>
             <!-- Navigation Bar-->
-            <div id="Header-Nav-Bar" class="col-8 mt-2 mt-sm-4">
+            <div class="col-9 mt-2 mt-sm-4">
                 <!-- navbar-->
                 <nav id="navbar" class="navbar navbar-expand-md navbar-light">
-                    <h5 style="color: white; font-weight: bold;">Welcome to your dashboard, {{ current_user.username }}!</h5>
-                    <div class="navbar-nav">
+                    <div class="col-6 d-flex justify-content-center">
+                        <h5 style="color: white; font-weight: bold;">Welcome to your dashboard, {{ current_user.username }}!</h5>
+                    </div>
+                    <div class="col-6 navbar-nav d-flex justify-content-center">
                         <!-- Folders dropdown menu -->
                         <div class="dropdown">
                             <button class="btn btn-dark" style="color: white; font-weight: bold;" type="button" id="folderDropdownToggle">
@@ -65,7 +68,7 @@
         <div class="row">
 
             <!-- First Column -->
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="bg-light p-2">
                     <p><strong>Create a Folder</strong></p>
                     <form method="POST" action="/create_folder">
@@ -90,7 +93,7 @@
                     <form method="POST" action="/create_flashcard">
                         <label for="folder_id">Select a Folder:</label>
                         <select class="form-select" name="folder_id" required>
-                            <option selected>Choose a folder</option>
+                            <option value="" selected>Select a folder</option>
                             {% for folder in folders %}
                                 <option value="{{ folder.id }}">{{ folder.name }}</option>
                             {% endfor %}
@@ -140,27 +143,10 @@
             </div>
 
             <!-- Second Column -->
-            <div class="col-md-8">
+            <div class="col-md-6 d-flex justify-content-center">
                 <div class="grade-chart" id="gradeChart-container">
                     <canvas id="overallScoreChart" width="200" height="200"></canvas>
                 </div>
-                <span>
-                    <h2>Your Folders</h2>
-                    <table>
-                        <tbody>
-                            {% for folder in folders %}
-                            <tr>
-                                <td>
-                                    <!-- Folder Name -->
-                                    <a href="{{ url_for('view_folder', folder_id=folder.id) }}">
-                                        <button class="md-5" style="background-color: {{ folder.color }}">{{ folder.name }}</button>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </span>
             </div>
 
         </div>
@@ -221,13 +207,16 @@
                     labels: ['Score', 'Not Scored'],
                     datasets: [{
                         data: [overallScore, 100 - overallScore],
-                        backgroundColor: ['green', 'gray'],
+                        backgroundColor: ['cornflowerblue', 'gray'],
                     }]
                 },
                 options: {
-                    title: {
-                        display: true,
-                        text: `Overall Score: ${overallScore}%`
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Overall Score: ${overallScore}%`,
+                            position: 'top',
+                        }
                     }
                 }
             });

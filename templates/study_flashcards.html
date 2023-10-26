@@ -5,41 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard</title>
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css"
+          rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We"
+          crossorigin="anonymous">
 </head>
+<style>
+    .card {
+    width: 600px;
+    margin: 0 auto;
+    margin-top: 50px;
+    border: 1px solid #ccc;
+    }
+
+    .flashcard-content {
+        padding: 20px;
+        text-align: center;
+        font-size: 20px;
+    }
+
+    .flashcard-content.answer {
+        display: none;
+    }
+</style>
 <body>
-    <h1>Study Flashcards</h1>
+    <div class="container mt-3">
+        <div class="text-center">
+            <h1 style="font-weight: bold;">Study Flashcards</h1>
+        </div>
 
-    <!-- Display flashed messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="alert alert-{{ messages[0][0] }}">
-                    {{ messages[0][1] }}
+        <div id="flashcard-container">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Flashcard</h5>
+                    <div class="flashcard">
+                        <div class="flashcard-content question">
+                            {{ flashcards_data[0].question }}
+                        </div>
+                        <div class="flashcard-content answer" style="display: none;">
+                            {{ flashcards_data[0].answer }}
+                        </div>
+                    </div>
+                    <div class="btn-group" role="group" aria-label="Basic example">
+                            <button class="btn btn-secondary correct-button" onclick="showNextFlashcard()">Next</button>
+                            <button class="btn btn-primary flip-button" onclick="toggleFlashcard()">Flip</button>
+                    </div>
+
                 </div>
-            {% endif %}
-        {% endwith %}
-
-    <div id="flashcard-container">
-        <div class="flashcard">
-            <div class="question">{{ flashcards_data[0].question }}</div>
-            <div class="answer" style="display: none;">{{ flashcards_data[0].answer }}</div>
-            <div class="buttons">
-                <button class="reveal-button" onclick="revealAnswer()">Reveal Answer</button>
-                <button class="next-button" onclick="showNextFlashcard()">Next</button>
             </div>
-            <div class="attempts">attempts record for this flashcard:
-                {{ flashcards_data[0].attempts }}</div>
+        </div>
+
+         <div class="text-center">
+            <a href="{{ url_for('view_folder', folder_id=folder.id) }}" class="btn btn-link">Back to Folder</a>
         </div>
     </div>
-    <a href="{{ url_for('view_folder', folder_id=folder.id) }}" class="btn btn-link">Back to Folder</a>
 
     <script>
         // JavaScript functions to handle flashcard interactions
         let currentFlashcardIndex = 0;
         const flashcardsData = {{ flashcards_data|tojson }};
 
-        function revealAnswer() {
-            document.querySelector('.answer').style.display = 'block';
+        function toggleFlashcard() {
+            const question = document.querySelector('.flashcard-content.question');
+            const answer = document.querySelector('.flashcard-content.answer');
+            if (question.style.display === 'none') {
+                question.style.display = 'block';
+                answer.style.display = 'none';
+            } else {
+                question.style.display = 'none';
+                answer.style.display = 'block';
+            }
         }
 
         function showNextFlashcard() {

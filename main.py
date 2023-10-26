@@ -124,10 +124,17 @@ def create_flashcard():
     question = request.form['question']
     answer = request.form['answer']
 
-    flashcard = Flashcard(folder_id=folder_id, question=question, answer=answer)
-    session.add(flashcard)
-    session.commit()
-    flash('Flashcard created successfully!', 'success')
+    if not folder_id:
+        # If no folder was chosen, set folder_id to the Default Folder of the current user
+        default_folder = session.query(Folder).filter_by(user_id=current_user.id, name='Default Folder').first()
+        folder_id = default_folder.id if default_folder else None
+
+    if folder_id:
+        flashcard = Flashcard(folder_id=folder_id, question=question, answer=answer)
+        session.add(flashcard)
+        session.commit()
+        flash('Flashcard created successfully!', 'success')
+
     return redirect(url_for('dashboard'))
 
 
