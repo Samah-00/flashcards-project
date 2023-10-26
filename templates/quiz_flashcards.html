@@ -13,18 +13,20 @@
     <div id="flashcard-container">
         <div class="flashcard">
             <div class="question">{{ flashcards_data[0].question }}</div>
+            <input type="text" class="user-answer" placeholder="Type your answer here">
             <div class="answer" style="display: none;">{{ flashcards_data[0].answer }}</div>
             <div class="buttons">
                 <button class="reveal-button" onclick="revealAnswer()">Reveal Answer</button>
                 <button class="correct-button" onclick="markCorrect()">✅ Correct</button>
                 <button class="incorrect-button" onclick="markIncorrect()">❌ Incorrect</button>
             </div>
-            <div class="attempts">attempts record for this flashcard:
+            <div class="attempts">
+                attempts record for this flashcard:
                 {{ flashcards_data[0].attempts }}
             </div>
         </div>
-        </div>
     </div>
+
     <a href="{{ url_for('view_folder', folder_id=folder) }}" class="btn btn-link">Back to Folder</a>
 
     <script>
@@ -92,8 +94,7 @@
         }
 
         function sendQuizResults(grade) {
-            // Make an AJAX POST request to send the exam results to the server
-            fetch('/submit_exam_results', {
+            return fetch('/submit_exam_results', {
                 method: 'POST',
                 body: new URLSearchParams({
                     grade: grade,
@@ -101,18 +102,18 @@
                 }),
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                },
+                }
             })
-                .then(response => {
-                    if (response.status === 200) {
-                        console.log('Exam results submitted successfully.');
-                    } else {
-                        console.error('Error submitting exam results:', response.statusText);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error submitting exam results:', error);
-                });
+            .then(response => {
+                if (response.status === 200) {
+                    console.log('Exam results submitted successfully.');
+                } else {
+                    console.error('Error submitting exam results:', response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting exam results:', error);
+            });
         }
 
         function updateFlashcardAttempts() {
@@ -151,14 +152,20 @@
 
             // Make an AJAX request to send the results to the server
             sendQuizResults(grade);
+
             alert('You have studied all flashcards in this folder.');
         }
 
         function updateFlashcard() {
             const currentFlashcard = flashcardsData[currentFlashcardIndex];
+
+            // Update the question and answer elements
             document.querySelector('.question').textContent = currentFlashcard.question;
             document.querySelector('.answer').textContent = currentFlashcard.answer;
             document.querySelector('.answer').style.display = 'none';
+
+            // Clear the user's answer in the input field
+            document.querySelector('.user-answer').value = '';
         }
     </script>
     <!-- Bootstrap JS -->

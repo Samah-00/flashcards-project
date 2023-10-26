@@ -6,7 +6,15 @@
     <title>View Folder</title>
         <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 </head>
+<style>
+    .grade-chart {
+        width: 200px;
+        height: 200px;
+    }
+</style>
 <body>
 
     <h1>Folder: {{ folder.name }}</h1>
@@ -20,7 +28,11 @@
         {% endif %}
     {% endwith %}
 
-    <p>Number of Flashcards: {{ flashcards|length }}</p>
+    <div class="grade-chart" id="gradeChart-container">
+        <canvas id="gradeChart" class="grade-chart"></canvas>
+        <p>Number of Flashcards: {{ flashcards|length }}</p>
+        <button class="download-button" onclick="downloadGradeChart()">Download Grade Chart</button>
+    </div>
 
     <!-- A button to study the flashcards -->
     <form method="GET" action="{{ url_for('study_flashcards', folder_id=folder.id) }}">
@@ -76,6 +88,58 @@
     </form>
 
     <a href="/dashboard">Back to Dashboard</a>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Retrieve the grade (latest_score) from your template
+            const grade = {{ folder.latest_score }};
+
+            // Check if grade has a value before displaying the chart
+            if (grade !== -1 && grade !== undefined) {
+                // Run the function to display the grade as a pie chart
+                displayGradeChart(grade);
+            }
+            else {
+                const gradeContainer = document.getElementById('gradeChart-container');
+                const gradeCanvas = document.getElementById('gradeChart');
+
+                // Display the container
+                gradeContainer.style.display = 'none';
+            }
+        });
+
+        function displayGradeChart(grade) {
+            const gradeContainer = document.getElementById('gradeChart-container');
+            const gradeCanvas = document.getElementById('gradeChart');
+
+            const gradeChart = new Chart(gradeCanvas, {
+                type: 'pie',
+                data: {
+                    labels: ['Grade', 'Remaining'],
+                    datasets: [{
+                        data: [grade, 100 - grade],
+                        backgroundColor: ['green', 'gray'],
+                    }]
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: `Exam Grade: ${grade.toFixed(2)}%`
+                    }
+                }
+            });
+        }
+
+        function downloadGradeChart() {
+            const gradeCanvas = document.getElementById('gradeChart');
+            const dataUrl = gradeCanvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = 'grade_chart.png';
+            link.click();
+        }
+    </script>
+
     <!-- Bootstrap JS -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>

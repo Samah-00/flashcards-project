@@ -5,14 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard</title>
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css"
+          rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We"
+          crossorigin="anonymous">
+    <!-- canvas.js for the pie chart -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 </head>
+<style>
+    .grade-chart {
+        width: 300px;
+        height: 300px;
+    }
+</style>
 <body>
-    <div class="container">
-        <div>
-            <h1>Welcome to Your Dashboard, {{ current_user.username }}!</h1>
-            <a href="/logout">Logout</a>
+     <!--Header-->
+    <div id="Header" class="container-fluid bg-dark">
+        <div class="row">
+            <!-- Logo -->
+            <div id="Header-Logo" class="col-4">
+                <img class="img-fluid" src="/static/book-icon-colors.jpg" alt="Logo" width="100" height="100">
+            </div>
+            <!-- Navigation Bar-->
+            <div id="Header-Nav-Bar" class="col-8 mt-2 mt-sm-4">
+                <!-- navbar-->
+                <nav id="navbar" class="navbar navbar-expand-md navbar-light">
+                    <h5 style="color: white; font-weight: bold;">Welcome to your dashboard, {{ current_user.username }}!</h5>
+                    <div class="navbar-nav">
+                        <!-- Folders dropdown menu -->
+                        <div class="dropdown">
+                            <button class="btn btn-dark" style="color: white; font-weight: bold;" type="button" id="folderDropdownToggle">
+                                Select Folder
+                            </button>
+                            <ul class="dropdown-menu nav-link" aria-labelledby="folderDropdownToggle" id="folderDropdownMenu">
+                                {% for folder in folders %}
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('view_folder', folder_id=folder.id) }}">
+                                            {{ folder.name }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <a class="nav-link" style="color: white; font-weight: bold;" href="/logout">Logout</a>
+                    </div>
+                </nav>
+            </div>
         </div>
+    </div>
+    <div class="container mt-5">
 
         <!-- Display flashed messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -22,18 +62,19 @@
                 </div>
             {% endif %}
         {% endwith %}
-
         <div class="row">
+
             <!-- First Column -->
             <div class="col-md-4">
                 <div class="bg-light p-2">
                     <p><strong>Create a Folder</strong></p>
                     <form method="POST" action="/create_folder">
                         <label for="name">Folder Name:</label>
-                        <input type="text" name="name" required><br><br>
+                        <input class="form-control" type="text" name="name" required><br><br>
 
                         <label for="color">Folder Color:</label>
-                        <select name="color">
+                        <select class="form-select" name="color">
+                            <option selected>Choose a color</option>
                             <option value="red">Red</option>
                             <option value="blue">Blue</option>
                             <option value="green">Green</option>
@@ -41,36 +82,38 @@
                             <option value="orange">Orange</option>
                         </select><br><br>
 
-                        <input type="submit" value="Create Folder">
+                        <input class="btn btn-dark md-1 form-control" type="submit" value="Create Folder">
                     </form>
                 </div>
                 <div class="bg-light p-2 m-2">
                     <p><strong>Create a Flashcard</strong></p>
                     <form method="POST" action="/create_flashcard">
                         <label for="folder_id">Select a Folder:</label>
-                        <select name="folder_id" required>
+                        <select class="form-select" name="folder_id" required>
+                            <option selected>Choose a folder</option>
                             {% for folder in folders %}
                                 <option value="{{ folder.id }}">{{ folder.name }}</option>
                             {% endfor %}
                         </select><br><br>
 
                         <label for="question">Question:</label>
-                        <textarea name="question" rows="1" required></textarea><br><br>
+                        <textarea class="form-control" name="question" rows="1" required></textarea><br><br>
 
                         <label for="answer">Answer:</label>
-                        <textarea name="answer" rows="1" required></textarea><br><br>
+                        <textarea class="form-control" name="answer" rows="1" required></textarea><br><br>
 
-                        <input type="submit" value="Create Flashcard">
+                        <input class="btn btn-dark md-1 form-control" type="submit" value="Create Flashcard">
                     </form>
                 </div>
                 <div class="bg-light p-2 m-2">
                     <p><strong>Generate Flashcards</strong></p>
                     <form method="POST" action="/generate_flashcards">
                         <label for="folder_name">Folder Name:</label>
-                        <input type="text" name="folder_name" required><br><br>
+                        <input class="form-control" type="text" name="folder_name" required><br><br>
 
                         <label for="folder_color">Folder Color:</label>
-                        <select name="folder_color">
+                        <select class="form-select" name="folder_color">
+                            <option selected>Choose a color</option>
                             <option value="red">Red</option>
                             <option value="blue">Blue</option>
                             <option value="green">Green</option>
@@ -79,9 +122,9 @@
                         </select><br><br>
 
                         <label for="text">Text:</label>
-                        <textarea name="text" rows="3" required></textarea><br><br>
+                        <textarea class="form-control" name="text" rows="3" required></textarea><br><br>
 
-                        <input type="submit" value="Create Folder & Flashcards">
+                        <input class="btn btn-dark md-1 form-control" type="submit" value="Create Folder & Flashcards">
                     </form>
                 </div>
                 <div class="bg-light p-2 m-2">
@@ -90,14 +133,17 @@
                         <label for="exam_date">Exam Date:</label>
                         <input type="date" name="exam_date" required><br><br>
 
-                        <input type="submit" value="Calculate Days Left">
+                        <input class="btn btn-dark md-1 form-control" type="submit" value="Calculate Days Left">
                         <div id="days_left_result"></div>
                     </form>
                 </div>
             </div>
 
             <!-- Second Column -->
-            <div class="col-md-8 bg-secondary">
+            <div class="col-md-8">
+                <div class="grade-chart" id="gradeChart-container">
+                    <canvas id="overallScoreChart" width="200" height="200"></canvas>
+                </div>
                 <span>
                     <h2>Your Folders</h2>
                     <table>
@@ -144,7 +190,50 @@
                     console.error('Error:', error);
                 });
         });
+
+        // JavaScript to handle dropdown behavior
+        let folderDropdownToggle = document.getElementById('folderDropdownToggle');
+        let folderDropdownMenu = document.getElementById('folderDropdownMenu');
+
+        folderDropdownToggle.addEventListener('click', function () {
+            if (folderDropdownMenu.style.display === 'block') {
+                folderDropdownMenu.style.display = 'none';
+            } else {
+                folderDropdownMenu.style.display = 'block';
+            }
+        });
+
+        // Close the dropdown when clicking outside of it
+        document.addEventListener('click', function (event) {
+            if (!folderDropdownToggle.contains(event.target)) {
+                folderDropdownMenu.style.display = 'none';
+            }
+        });
+
+        // Data for the overall score pie chart
+        const overallScore = {{ overall_score }};
+
+        if (overallScore >= 0) {
+            const overallScoreCanvas = document.getElementById('overallScoreChart');
+            const overallScoreChart = new Chart(overallScoreCanvas, {
+                type: 'pie',
+                data: {
+                    labels: ['Score', 'Not Scored'],
+                    datasets: [{
+                        data: [overallScore, 100 - overallScore],
+                        backgroundColor: ['green', 'gray'],
+                    }]
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: `Overall Score: ${overallScore}%`
+                    }
+                }
+            });
+        }
     </script>
+
     <!-- Bootstrap JS -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>

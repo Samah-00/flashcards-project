@@ -11,7 +11,7 @@ import utilities
 openai.api_key = os.getenv("api_key")
 
 # create an instance of the Flask class and assigns it to the variable app
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static', static_folder='static')
 
 # Set a secret key
 app.secret_key = 'my_secret_key'
@@ -109,7 +109,11 @@ def logout():
 @login_required
 def dashboard():
     folders = current_user.folders
-    return render_template('dashboard.html', folders=folders)
+
+    # Calculate the overall score
+    overall_score = sum(folder.latest_score for folder in folders if folder.latest_score != -1)
+
+    return render_template('dashboard.html', folders=folders, overall_score=overall_score)
 
 
 # Create Flashcard
@@ -368,20 +372,28 @@ def submit_exam_results():
 @app.route('/update_flashcard_attempts', methods=['POST'])
 @login_required
 def update_flashcard_attempts():
-    flashcard_id = request.form.get('flashcard_id')
-    attempts = request.form.get('attempts')
+    try:
+        flashcard_id = request.form.get('flashcard_id')
+        attempts = request.form.get('attempts')
 
-    # Fetch the flashcard by ID
-    flashcard = session.query(Flashcard).filter_by(id=flashcard_id).first()
+        # Fetch the flashcard by ID
+        flashcard = session.query(Flashcard).filter_by(id=flashcard_id).first()
 
-    if flashcard:
-        # Update the attempts attribute
-        flashcard.attempts = attempts
-        session.commit()
-        print(flashcard.question, flashcard.attempts)
-        return 'Flashcard attempts updated successfully', 200
-    else:
-        return 'Flashcard not found', 404
+        if flashcard:
+            # Update the attempts attribute
+            flashcard.attempts = attempts
+            session.commit()
+            print(flashcard.question, flashcard.attempts)
+            return 'Flashcard attempts updated successfully', 200
+        else:
+            return 'Flashcard not found', 404
+    except Exception as e:
+        # If there's an exception, roll back the session and handle the error
+        session.rollback()
+        return f'Error: {str(e)}', 500
+    finally:
+        # Always close the session
+        session.close()
 
 
 # A handler for 404 errors

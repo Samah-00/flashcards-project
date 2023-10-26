@@ -40,7 +40,7 @@ class Folder(Base, Model):
     color = Column(String(10))
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     full_access = Column(Boolean, default=False)  # to determine if users can modify/delete a folder or not
-    latest_score = Column(Integer)
+    latest_score = Column(Integer, default=-1)
     flashcards = relationship('Flashcard', backref='folder', lazy=True)
 
     def __init__(self, name, color, user, full_access=False):
