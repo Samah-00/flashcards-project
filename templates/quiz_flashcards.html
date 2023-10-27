@@ -95,21 +95,21 @@
             // Make an AJAX request to add the incorrect flashcard to the 'Revise This' folder
             const currentFlashcard = flashcardsData[currentFlashcardIndex];
             const folderId = revise_this_folder_id;
-            addFlashcardToFolder(folderId, currentFlashcard.question, currentFlashcard.answer);
-
-            currentFlashcardIndex++;
-            if (currentFlashcardIndex < flashcardsData.length) {
-                updateFlashcardAttempts();
-                // Update the current flashcard
-                updateFlashcard();
-            } else {
-                finishQuiz();
-            }
+            addFlashcardToFolder(folderId, currentFlashcard.question, currentFlashcard.answer).then(() => {
+                currentFlashcardIndex++;
+                    if (currentFlashcardIndex < flashcardsData.length) {
+                        updateFlashcardAttempts().then(() => {
+                            updateFlashcard();
+                        });
+                    } else {
+                        finishQuiz();
+                    }
+            });
         }
 
         function addFlashcardToFolder(folderId, question, answer) {
             // Make an AJAX POST request to the '/add_flashcard_to_folder' route
-            fetch('/add_flashcard_to_folder', {
+            return fetch('/add_flashcard_to_folder', {
                 method: 'POST',
                 body: new URLSearchParams({
                     folder_id: folderId,
@@ -162,7 +162,7 @@
             const attempts = currentFlashcard.attempts + 1;
 
             // Make an AJAX POST request to update the attempts for the flashcard
-            fetch('/update_flashcard_attempts', {
+            return fetch('/update_flashcard_attempts', {
                 method: 'POST',
                 body: new URLSearchParams({
                     flashcard_id: flashcardId,
@@ -172,16 +172,16 @@
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
             })
-                .then(response => {
-                    if (response.status === 200) {
-                        console.log('Flashcard attempts updated successfully.');
-                    } else {
-                        console.error('Error updating flashcard attempts:', response.statusText);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error updating flashcard attempts:', error);
-                });
+            .then(response => {
+                if (response.status === 200) {
+                    console.log('Flashcard attempts updated successfully.');
+                } else {
+                    console.error('Error updating flashcard attempts:', response.statusText);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating flashcard attempts:', error);
+            });
         }
 
         function finishQuiz() {
@@ -202,9 +202,6 @@
             document.querySelector('.question').textContent = currentFlashcard.question;
             document.querySelector('.answer').textContent = currentFlashcard.answer;
             document.querySelector('.answer').style.display = 'none';
-
-            // Clear the user's answer in the input field
-            document.querySelector('.user-answer').value = '';
         }
     </script>
     <!-- Bootstrap JS -->

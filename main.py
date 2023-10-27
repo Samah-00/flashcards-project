@@ -373,7 +373,8 @@ def submit_exam_results():
         return jsonify({'message': 'Exam results submitted successfully'})
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        flash(str(e), 'danger')
+        abort(500)  # Raise a 500 error
 
 
 @app.route('/update_flashcard_attempts', methods=['POST'])
@@ -390,17 +391,13 @@ def update_flashcard_attempts():
             # Update the attempts attribute
             flashcard.attempts = attempts
             session.commit()
-            print(flashcard.question, flashcard.attempts)
+
             return 'Flashcard attempts updated successfully', 200
         else:
             return 'Flashcard not found', 404
     except Exception as e:
-        # If there's an exception, roll back the session and handle the error
-        session.rollback()
-        return f'Error: {str(e)}', 500
-    finally:
-        # Always close the session
-        session.close()
+        flash(str(e), 'danger')
+        abort(500)  # Raise a 500 error
 
 
 # A handler for 404 errors
