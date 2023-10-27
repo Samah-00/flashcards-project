@@ -110,8 +110,13 @@ def logout():
 def dashboard():
     folders = current_user.folders
 
-    # Calculate the overall score
-    overall_score = sum(folder.latest_score for folder in folders if folder.latest_score != -1)
+    # Calculate the sum of scores and count the number of folders with a valid score
+    valid_scores = [folder.latest_score for folder in folders if folder.latest_score != -1]
+    total_score = sum(valid_scores)
+    valid_folder_count = len(valid_scores)
+
+    # Calculate the average score
+    overall_score = total_score / valid_folder_count if valid_folder_count > 0 else -1
 
     return render_template('dashboard.html', folders=folders, overall_score=overall_score)
 
