@@ -34,6 +34,11 @@
                         <h5 style="color: white; font-weight: bold;">Welcome to your dashboard, {{ current_user.username }}!</h5>
                     </div>
                     <div class="col-6 navbar-nav d-flex justify-content-center">
+                        <!-- coins -->
+                        <div class="points-icon" style="margin-top: 6px;">&#128176;</div>
+                        <div style="color: white; font-weight: bold; margin-top: 6px;">
+                            {{ current_user.points }}
+                        </div>
                         <!-- Folders dropdown menu -->
                         <div class="dropdown">
                             <button class="btn btn-dark" style="color: white; font-weight: bold;" type="button" id="folderDropdownToggle">
@@ -49,6 +54,7 @@
                                 {% endfor %}
                             </ul>
                         </div>
+                        <!-- logout -->
                         <a class="nav-link" style="color: white; font-weight: bold;" href="/logout">Logout</a>
                     </div>
                 </nav>

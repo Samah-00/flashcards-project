@@ -118,7 +118,10 @@ def dashboard():
     # Calculate the average score
     overall_score = total_score / valid_folder_count if valid_folder_count > 0 else -1
 
-    return render_template('dashboard.html', folders=folders, overall_score=overall_score)
+    # Display the user's points on the dashboard
+    user_points = current_user.points
+
+    return render_template('dashboard.html', folders=folders, overall_score=overall_score, user_points=user_points)
 
 
 # Create Flashcard
@@ -367,15 +370,19 @@ def change_folder_name(folder_id):
 def submit_exam_results():
     try:
         grade = float(request.form['grade'])
+        new_points = int(request.form.get('points', 0))
         folder_id = request.form['folder_id']
 
         # Update the 'latest_score' of the folder
         folder = session.query(Folder).filter_by(id=folder_id).first()
         if folder:
             folder.latest_score = grade
-            session.commit()
+        # Update the points of the current user
+        current_user.points += new_points
 
-        return jsonify({'message': 'Exam results submitted successfully'})
+        session.commit()
+
+        return jsonify({'message': 'Exam results submitted and points updated successfully'})
 
     except Exception as e:
         flash(str(e), 'danger')

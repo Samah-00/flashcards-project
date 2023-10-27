@@ -14,6 +14,7 @@ class User(Base, UserMixin):
     id = Column(Integer, primary_key=True)
     username = Column(String(50), unique=True, nullable=False)
     password = Column(String(100), nullable=False)
+    points = Column(Integer, default=0)
     folders = relationship('Folder', backref='user', lazy=True)
 
     def __init__(self, username, password):

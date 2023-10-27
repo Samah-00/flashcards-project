@@ -67,6 +67,7 @@
         const revise_this_folder_id  = {{ revise_this_folder }};
         const folder_id = {{ folder }};
         let correctAnswers = 0; // Counter for correct answers
+        let currentScore = 0; // Initialize the current score to 0
 
         function toggleFlashcard() {
             const question = document.querySelector('.flashcard-content.question');
@@ -83,6 +84,8 @@
         function markCorrect() {
             currentFlashcardIndex++;
             correctAnswers++;
+            // Update the user's points
+            updatePoints(3);
             if (currentFlashcardIndex < flashcardsData.length) {
                 updateFlashcardAttempts();
                 updateFlashcard();
@@ -97,6 +100,8 @@
             const folderId = revise_this_folder_id;
             addFlashcardToFolder(folderId, currentFlashcard.question, currentFlashcard.answer).then(() => {
                 currentFlashcardIndex++;
+                // Update the user's points
+                updatePoints(-1);
                     if (currentFlashcardIndex < flashcardsData.length) {
                         updateFlashcardAttempts().then(() => {
                             updateFlashcard();
@@ -105,6 +110,11 @@
                         finishQuiz();
                     }
             });
+        }
+
+        function updatePoints(points) {
+            // Add points to the client-side score
+            currentScore += points;
         }
 
         function addFlashcardToFolder(folderId, question, answer) {
@@ -137,6 +147,7 @@
                 method: 'POST',
                 body: new URLSearchParams({
                     grade: grade,
+                    points: currentScore,
                     folder_id: folder_id,
                 }),
                 headers: {
@@ -190,7 +201,7 @@
             const grade = (correctAnswers / totalQuestions) * 100;
 
             // Make an AJAX request to send the results to the server
-            sendQuizResults(grade);
+            sendQuizResults(grade, currentScore );
 
             alert('You have studied all flashcards in this folder.');
         }
