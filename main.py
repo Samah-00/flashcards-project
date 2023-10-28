@@ -251,6 +251,34 @@ def add_flashcard_to_folder():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/delete_flashcard/<int:flashcard_id>', methods=['POST'])
+@login_required
+def delete_flashcard(flashcard_id):
+    try:
+        # Fetch the flashcard by ID
+        flashcard = session.query(Flashcard).get(flashcard_id)
+
+        if not flashcard:
+            flash('Flashcard not found.', 'danger')
+            return redirect(url_for('view_folder', folder_id=flashcard.folder.id))
+
+        # Check if the user has permission to delete the flashcard
+        if flashcard.folder.user != current_user:
+            flash('You do not have permission to delete this flashcard.', 'danger')
+            return redirect(url_for('view_folder', folder_id=flashcard.folder.id))
+
+        # Delete the flashcard
+        session.delete(flashcard)
+        session.commit()
+
+        flash('Flashcard deleted successfully.', 'success')
+        return redirect(url_for('view_folder', folder_id=flashcard.folder.id))
+
+    except Exception as e:
+        flash('An error occurred while deleting the flashcard.', 'danger')
+        return redirect(url_for('view_folder', folder_id=flashcard.folder.id))
+
+
 @app.route('/generate_flashcards', methods=['POST'])
 @login_required
 def create_folder_and_flashcards():

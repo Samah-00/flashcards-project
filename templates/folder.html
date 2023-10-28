@@ -49,6 +49,10 @@
 
                     <button type="button" class="btn btn-link"><a href="/dashboard">Back to Dashboard</a></button>
 
+                    <br>
+
+                    <button id="toggleTableButton" class="btn btn-link">Show Flashcards</button>
+
                     <hr>
 
                     <table class="table">
@@ -85,6 +89,33 @@
                             </tr>
                         </tbody>
                     </table>
+
+                    <!-- List of flashcards in the folder -->
+                    <div>
+                        <table class="table" id="flashcardTable" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>Question</th>
+                                    <th>Answer</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for flashcard in flashcards %}
+                                    <tr>
+                                        <td>{{ flashcard.question }}</td>
+                                        <td>{{ flashcard.answer }}</td>
+                                        <td>
+                                            <!-- Delete Flashcard Button -->
+                                            <form method="POST" action="{{ url_for('delete_flashcard', flashcard_id=flashcard.id) }}">
+                                                <button class="btn btn-danger" type="submit">Delete</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                  <!-- Second Column -->
@@ -119,6 +150,21 @@
                 // Display the container
                 gradeContainer.style.display = 'none';
             }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleButton = document.getElementById('toggleTableButton');
+            const table = document.getElementById('flashcardTable');
+
+            toggleButton.addEventListener('click', function() {
+                if (table.style.display === 'none') {
+                    table.style.display = 'table'; // Show the table
+                    toggleButton.textContent = 'Hide Flashcards';
+                } else {
+                    table.style.display = 'none'; // Hide the table
+                    toggleButton.textContent = 'Show Flashcards';
+                }
+            });
         });
 
         function displayGradeChart(grade, folderName, folderColor) {
