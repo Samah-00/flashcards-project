@@ -69,7 +69,7 @@ class Flashcard(Base, Model):
 # Create a database engine
 engine = create_engine(f'sqlite:///mydb.db')
 # Drop the existing tables if they exist
-# Base.metadata.drop_all(engine)
+Base.metadata.drop_all(engine)      # comment out this line if you DON'T want to drop the data
 # Create the database tables
 Base.metadata.create_all(engine)
 # Create a session

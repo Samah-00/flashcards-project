@@ -8,6 +8,8 @@ from generate_flashcards import generate_questions_and_answers
 import utilities
 
 # Initialize the OpenAI API client in order to generate flashcards from txt files:
+# before running the code, please make sure that the environment variables section includes:
+# name: api_key, value: <value of key>
 openai.api_key = os.getenv("api_key")
 
 # create an instance of the Flask class and assigns it to the variable app
@@ -160,19 +162,6 @@ def create_folder():
     return redirect(url_for('dashboard'))
 
 
-# Calculate Exam Date
-@app.route('/calculate_exam_date', methods=['POST'])
-@login_required
-def calculate_exam_date():
-    try:
-        exam_date = request.form['exam_date']
-        exam_date = datetime.strptime(exam_date, '%Y-%m-%d')
-        days_left = (exam_date - datetime.now()).days + 1
-        return jsonify({'days_left': days_left})
-    except ValueError:
-        return jsonify({'error': 'Invalid date format'}), 400
-
-
 @app.route('/folder/<int:folder_id>', methods=['GET'])
 @login_required
 def view_folder(folder_id):
@@ -225,6 +214,53 @@ def quiz_flashcards(folder_id):
     else:
         flash("No flashcards to quiz in this folder.", "info")
         return redirect(url_for('view_folder', folder_id=folder.id))
+
+
+@app.route('/submit_exam_results', methods=['POST'])
+@login_required
+def submit_exam_results():
+    try:
+        grade = float(request.form['grade'])
+        new_points = int(request.form.get('points', 0))
+        folder_id = request.form['folder_id']
+
+        # Update the 'latest_score' of the folder
+        folder = session.query(Folder).filter_by(id=folder_id).first()
+        if folder:
+            folder.latest_score = grade
+        # Update the points of the current user
+        current_user.points += new_points
+
+        session.commit()
+
+        return jsonify({'message': 'Exam results submitted and points updated successfully'})
+
+    except Exception as e:
+        flash(str(e), 'danger')
+        abort(500)  # Raise a 500 error
+
+
+@app.route('/update_flashcard_attempts', methods=['POST'])
+@login_required
+def update_flashcard_attempts():
+    try:
+        flashcard_id = request.form.get('flashcard_id')
+        attempts = request.form.get('attempts')
+
+        # Fetch the flashcard by ID
+        flashcard = session.query(Flashcard).filter_by(id=flashcard_id).first()
+
+        if flashcard:
+            # Update the attempts attribute
+            flashcard.attempts = attempts
+            session.commit()
+
+            return 'Flashcard attempts updated successfully', 200
+        else:
+            return 'Flashcard not found', 404
+    except Exception as e:
+        flash(str(e), 'danger')
+        abort(500)  # Raise a 500 error
 
 
 @app.route('/add_flashcard_to_folder', methods=['POST'])
@@ -393,51 +429,17 @@ def change_folder_name(folder_id):
     return redirect(url_for('view_folder', folder_id=folder.id))
 
 
-@app.route('/submit_exam_results', methods=['POST'])
+# Calculate Exam Date
+@app.route('/calculate_exam_date', methods=['POST'])
 @login_required
-def submit_exam_results():
+def calculate_exam_date():
     try:
-        grade = float(request.form['grade'])
-        new_points = int(request.form.get('points', 0))
-        folder_id = request.form['folder_id']
-
-        # Update the 'latest_score' of the folder
-        folder = session.query(Folder).filter_by(id=folder_id).first()
-        if folder:
-            folder.latest_score = grade
-        # Update the points of the current user
-        current_user.points += new_points
-
-        session.commit()
-
-        return jsonify({'message': 'Exam results submitted and points updated successfully'})
-
-    except Exception as e:
-        flash(str(e), 'danger')
-        abort(500)  # Raise a 500 error
-
-
-@app.route('/update_flashcard_attempts', methods=['POST'])
-@login_required
-def update_flashcard_attempts():
-    try:
-        flashcard_id = request.form.get('flashcard_id')
-        attempts = request.form.get('attempts')
-
-        # Fetch the flashcard by ID
-        flashcard = session.query(Flashcard).filter_by(id=flashcard_id).first()
-
-        if flashcard:
-            # Update the attempts attribute
-            flashcard.attempts = attempts
-            session.commit()
-
-            return 'Flashcard attempts updated successfully', 200
-        else:
-            return 'Flashcard not found', 404
-    except Exception as e:
-        flash(str(e), 'danger')
-        abort(500)  # Raise a 500 error
+        exam_date = request.form['exam_date']
+        exam_date = datetime.strptime(exam_date, '%Y-%m-%d')
+        days_left = (exam_date - datetime.now()).days + 1
+        return jsonify({'days_left': days_left})
+    except ValueError:
+        return jsonify({'error': 'Invalid date format'}), 400
 
 
 # A handler for 404 errors
