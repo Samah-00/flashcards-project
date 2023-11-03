@@ -45,12 +45,12 @@
                             {{ flashcards_data[0].answer }}
                         </div>
                     </div>
+                    <div class="attempts">Attempts: {{ flashcards_data[0].attempts }}</div>
                     <div class="btn-group" role="group" aria-label="Basic example">
                             <button class="btn btn-success correct-button" onclick="markCorrect()">✅ Correct</button>
                             <button class="btn btn-primary flip-button" onclick="toggleFlashcard()">Flip</button>
                             <button class="btn btn-danger incorrect-button" onclick="markIncorrect()">❌ Incorrect</button>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -213,6 +213,7 @@
             document.querySelector('.question').textContent = currentFlashcard.question;
             document.querySelector('.answer').textContent = currentFlashcard.answer;
             document.querySelector('.answer').style.display = 'none';
+            document.querySelector('.attempts').textContent = `Attempts: ${currentFlashcard.attempts}`;
         }
     </script>
     <!-- Bootstrap JS -->
